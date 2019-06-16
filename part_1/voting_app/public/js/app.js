@@ -1,12 +1,5 @@
 class Product extends React.Component {
-    constructor(props) {
-        // sets this.props = props
-        super(props);
-
-        this.handleUpVote = this.handleUpVote.bind(this)
-    }
-
-    handleUpVote() {
+    handleUpVote = () => {
         this.props.onVote(this.props.id)
     }
 
@@ -45,6 +38,14 @@ class Product extends React.Component {
 }
 
 class ProductList extends React.Component {
+    /*  With propoerty initilizers, the constructor is not needed anymore.
+        I'm keeping this commendted out and not deleting it, because of the
+        NOTE.
+
+        With property initializers, by using arrow functions, this becomes 
+        automatically bound to the current component, so there is no need
+        to do the .bind() within the constructor.
+
     constructor(props) {
         super(props);
 
@@ -58,12 +59,17 @@ class ProductList extends React.Component {
 
         this.handleProductUpVote = this.handleProductUpVote.bind(this);
     }
+    */
+    
+    state = {
+        products: [],
+    };
 
     componentDidMount() {
         this.setState({ products: Seed.products });
     }
 
-    handleProductUpVote(productId) {
+    handleProductUpVote = (productId) => {
         const nextProducts = this.state.products.map((product) => {
             if (product.id === productId) {
                 return Object.assign({}, product, {
