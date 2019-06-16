@@ -45,15 +45,44 @@ class Product extends React.Component {
 }
 
 class ProductList extends React.Component {
+    constructor(props) {
+        super(props);
+
+        // NOTE: modifying state directly like this, via an =, is only
+        // allowed in the constructor. Anywehre else, this.setState() should
+        // be used, as it will call the necessary methods, such as the ones 
+        // that trigger the react components to re-render.
+        this.state = {
+            products: [],
+        };
+
+        this.handleProductUpVote = this.handleProductUpVote.bind(this);
+    }
+
+    componentDidMount() {
+        this.setState({ products: Seed.products });
+    }
+
     handleProductUpVote(productId) {
-        console.log(productId + ' was upvoted.')
+        const nextProducts = this.state.products.map((product) => {
+            if (product.id === productId) {
+                return Object.assign({}, product, {
+                    votes: product.votes + 1,
+                });
+            } else {
+                return product;
+            }
+        });
+        this.setState({
+            products: nextProducts,
+        });
     }
 
     render() {
-        const products = Seed.products.sort((a, b) => (
+        const products = this.state.products.sort((a, b) => (
             b.votes - a.votes
         ));
-        const productComponents = Seed.products.map((product) => (
+        const productComponents = products.map((product) => (
                 <Product
                     key={'product-' + product.id}
                     id={product.id}
