@@ -1,9 +1,35 @@
 class TimersDashboard extends React.Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            timers: [
+                {
+                    title: 'Timer 1',
+                    project: 'Project 1',
+                    id: uuid.v4(),
+                    elapsed: 5456099,
+                    runningSince: Date.now()
+                },
+                {
+                    title: 'Timer 2',
+                    project: 'Project 2',
+                    id: uuid.v4(),
+                    elapsed: 7456099,
+                    runningSince: null
+                }
+            ]
+        };
+    }
+
     render() {
         return (
             <div className='ui three column centered grid'>
                 <div className='column'>
-                    <EditableTimerList />
+                    <EditableTimerList 
+                    timers = {this.state.timers}
+                    />
                     <ToggleableTimerForm
                     isOpen={true}
                     />
@@ -16,32 +42,40 @@ class TimersDashboard extends React.Component {
 
 class EditableTimerList extends React.Component {
     render() {
+        const timers = this.props.timers.map((timer) => (
+            <EditableTimer
+                id={timer.id}
+                key={timer.id}
+                title={timer.title}
+                project={timer.project}
+                elapsed={timer.elapsed}
+                runningSince={timer.runningSince}
+            />
+        ));
         return (
             <div id='timers'>
-                <EditableTimer
-                    title='Timer 1'
-                    project='Timer 1 project'
-                    elapsed='8986300'
-                    runningSince={null}
-                    editFormOpen={false}
-                />
-                <EditableTimer
-                title='Timer 2'
-                project='Timer 2 project'
-                elapsed='3890985'
-                runningSince={null}
-                editFormOpen={true}
-                />
+                {timers}
             </div>
         )
     }
 }
 
 class EditableTimer extends React.Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            editFormOpen = false, // timer is closed by default
+        };
+
+    }
+
     render() {
-        if (this.props.editFormOpen) {
+        if (this.state.editFormOpen) {
             return (
                 <TimerForm
+                    id={this.props.id}
                     title={this.props.title}
                     project={this.props.project}
                 />
@@ -49,6 +83,7 @@ class EditableTimer extends React.Component {
         } else {
             return (
                 <Timer
+                    id={this.props.id}
                     title={this.props.title}
                     project={this.props.project}
                     elapsed={this.props.elapsed}
@@ -60,6 +95,19 @@ class EditableTimer extends React.Component {
 }
 
 class TimerForm extends React.Component {
+    state = {
+        title: this.props.title || '',
+        project: this.props.project || '',
+    };
+
+    handleTitleChange = (e) => {
+        this.setState({title: e.target.value});
+    };
+
+    handleProjectChange = (e) => {
+        this.setState({project: e.targe.value});
+    };
+
     render() {
         const submitText = this.props.title ? 'Update' : 'Create';
         return (
@@ -68,11 +116,19 @@ class TimerForm extends React.Component {
                     <div className='ui form'>
                         <div className='field'>
                             <label>Title</label>
-                            <input type='text' defaultValue={this.props.title} />
+                            <input
+                            type='text' 
+                            value={this.props.title} 
+                            onChange={this.handleTitleChange} 
+                            />
                         </div>
                         <div className='field'>
                             <label>Project</label>
-                            <input type='text' defaultValue={this.props.project} />
+                            <input
+                            type='text' 
+                            value={this.props.project} 
+                            onChange={this.handleProjectChange}
+                            />
                         </div>
                         <div className='ui two bottom attached buttons'>
                             <button className='ui basic blue button'>
@@ -90,14 +146,38 @@ class TimerForm extends React.Component {
 }
 
 class ToggleableTimerForm extends React.Component {
+
+    constructor(props) {
+        super(props);
+        
+        this.state = {
+            isOpen: false, // closed by default
+        };
+
+        // bind "this" inside handleOpenForm to ToggleableTimerForm component
+        this.handleFormOpen = this.handleFormOpen.bind(this);
+
+    }
+
+     handleFormOpen() {
+        this.setState({ isOpen: true })
+    }
+
     render() {
-        if (this.props.isOpen) {
+        if (this.state.isOpen) {
             return (
                 <TimerForm />
             );
         } else {
             return (
-                <PlusButton />
+            <div className='ui basic content center aligned segment'>
+                <button 
+                    className='ui basic button icon'
+                    onClick={this.handleFormOpen}
+                >
+                    <i className='plus icon' />
+                </button>
+            </div>
            );
         }
     }
