@@ -43,6 +43,36 @@ class TimersDashboard extends React.Component {
         });
     }
 
+    startTimer = (timerId) => {
+        const now = Date.now();
+        this.setState({
+
+            timers: this.state.timers.map((timer) => {
+                if (timer.id === timerId) {
+                    return Object.assign({}, timer, {runningSince: now});
+                } else {
+                    return timer;
+                }
+            })
+        });
+    }
+
+    stopTimer = (timerId) => {
+        const now = Date.now();
+        this.setState({
+            timers: this.state.timers.map((timer) => {
+                if (timer.id === timerId) {
+                    return Object.assign({}, timer, {
+                        elapsed: timer.elapsed + (now - timer.runningSince),
+                        runningSince: null,
+                    });
+                } else {
+                    return timer;
+                }
+            })
+        });
+    }
+
     createTimer = (timer) => {
         const t = helpers.newTimer(timer);
         this.setState({
@@ -65,6 +95,14 @@ class TimersDashboard extends React.Component {
         });
     };
 
+    handleStartClick = (timerId) => {
+        this.startTimer(timerId);
+    };
+
+    handleStopClick = (timerId) => {
+        this.stopTimer(timerId);
+    };
+
     render() {
         return (
             <div className='ui three column centered grid'>
@@ -73,6 +111,8 @@ class TimersDashboard extends React.Component {
                         timers = {this.state.timers}
                         onFormSubmit={this.handleEditFormSubmit}
                         onDeleteClick={this.handleTimerDelete}
+                        onStartClick={this.handleStartClick}
+                        onStopClick={this.handleStopClick}
                     />
                     <ToggleableTimerForm
                         onFormSubmit={this.handleCreateFormSubmit}
@@ -97,6 +137,8 @@ class EditableTimerList extends React.Component {
                 runningSince={timer.runningSince}
                 onFormSubmit={this.props.onFormSubmit}
                 onDeleteClick={this.props.onDeleteClick}
+                onStartClick={this.props.onStartClick}
+                onStopClick={this.props.onStopClick}
             />
         ));
         return (
@@ -160,6 +202,8 @@ class EditableTimer extends React.Component {
                     runningSince={this.props.runningSince}
                     onEditClick={this.handleEditClick}
                     onDeleteClick={this.props.onDeleteClick}
+                    onStartClick={this.props.onStartClick}
+                    onStopClick={this.props.onStopClick}
                 />
             )
         }
@@ -295,12 +339,31 @@ class PlusButton extends React.Component {
 
 class Timer extends React.Component {
 
+    componentDidMount() {
+        // setInterval() returns a unique ID that can then be used in clearInterval()
+        this.forceUpdateInterval = setInterval(() => this.forceUpdate(), 50);
+    }
+
+    // called before component is removed from the app
+    componentWillUnmount() {
+        clearInterval(this.forceUpdateInterval);
+    }
+
     handleTimerDelete = () => {
         this.props.onDeleteClick(this.props.id);
     };
 
+    handleStartClick = () => {
+        this.props.onStartClick(this.props.id);
+    };
+
+    handleStopClick = () => {
+        this.props.onStopClick(this.props.id);
+    };
+
+    
     render() {
-        const elapsedString = helpers.renderElapsedString(this.props.elapsed);
+        const elapsedString = helpers.renderElapsedString(this.props.elapsed, this.props.runningSince);
         return (
             <div className='ui centered card'>
                 <div className='content'>
@@ -330,11 +393,39 @@ class Timer extends React.Component {
                         </span>
                     </div>
                 </div>
-                <div className='ui bottom attached blue basic button'>
-                    Start
-                </div>
+                <TimerActionButton
+                    timerIsRunning={!!this.props.runningSince}
+                    onStartClick={this.handleStartClick}
+                    onStopClick={this.handleStopClick}
+                />
             </div>
         );
+    }
+}
+
+class TimerActionButton extends React.Component {
+    render () {
+        let return_value = null
+        if (this.props.timerIsRunning) {
+            return_value = (
+                <div
+                    className='ui bottom attached red basic button'
+                    onClick={this.props.onStopClick}
+                >
+                 Stop   
+                </div>
+            );
+        } else {
+            return_value = (
+                <div
+                    className='ui bottom attached green basic button'
+                    onClick={this.props.onStartClick}
+                >
+                    Start
+                </div>
+            );
+        }
+        return return_value
     }
 }
 
